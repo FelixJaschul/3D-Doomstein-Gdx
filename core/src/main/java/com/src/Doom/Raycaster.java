@@ -1,4 +1,4 @@
-package com.src;
+package com.src.Doom;
 
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Pixmap;
@@ -28,12 +28,12 @@ public class Raycaster {
         for (int x = 0; x < width; x++) {
             // Calculate ray position and direction
             double cameraX = 2 * x / (double) width - 1; // x-coordinate in camera space
-            double raycastDirectionX = camera.dir.x + camera.plane.x * cameraX;
-            double raycastDirectionY = camera.dir.y + camera.plane.y * cameraX;
+            double raycastDirectionX = camera.direction.x + camera.plane.x * cameraX;
+            double raycastDirectionY = camera.direction.y + camera.plane.y * cameraX;
 
             // Which box of the map we're in
-            int mapX = (int) camera.pos.x;
-            int mapY = (int) camera.pos.y;
+            int mapX = (int) camera.position.x;
+            int mapY = (int) camera.position.y;
 
             // Length of ray from one x or y-side to next x or y-side
             double deltaDistanceX = Math.sqrt(1 + (raycastDirectionY * raycastDirectionY) / (raycastDirectionX * raycastDirectionX));
@@ -48,18 +48,18 @@ public class Raycaster {
 
             if (raycastDirectionX < 0) {
                 stepX = -1;
-                sideDistanceX = (camera.pos.x - mapX) * deltaDistanceX;
+                sideDistanceX = (camera.position.x - mapX) * deltaDistanceX;
             } else {
                 stepX = 1;
-                sideDistanceX = (mapX + 1.0 - camera.pos.x) * deltaDistanceX;
+                sideDistanceX = (mapX + 1.0 - camera.position.x) * deltaDistanceX;
             }
 
             if (raycastDirectionY < 0) {
                 stepY = -1;
-                sideDistanceY = (camera.pos.y - mapY) * deltaDistanceY;
+                sideDistanceY = (camera.position.y - mapY) * deltaDistanceY;
             } else {
                 stepY = 1;
-                sideDistanceY = (mapY + 1.0 - camera.pos.y) * deltaDistanceY;
+                sideDistanceY = (mapY + 1.0 - camera.position.y) * deltaDistanceY;
             }
 
             // Perform DDA
@@ -80,8 +80,8 @@ public class Raycaster {
 
             // Calculate distance projected on camera direction
             double perpWallDistance;
-            if (side == 0) perpWallDistance = Math.abs((mapX - camera.pos.x + (double) (1 - stepX) / 2) / raycastDirectionX);
-            else perpWallDistance = Math.abs((mapY - camera.pos.y + (double) (1 - stepY) / 2) / raycastDirectionY);
+            if (side == 0) perpWallDistance = Math.abs((mapX - camera.position.x + (double) (1 - stepX) / 2) / raycastDirectionX);
+            else perpWallDistance = Math.abs((mapY - camera.position.y + (double) (1 - stepY) / 2) / raycastDirectionY);
 
             // Calculate height of line to draw on screen
             int lineHeight = (int) (height / perpWallDistance);
@@ -94,24 +94,26 @@ public class Raycaster {
 
             // Texturing calculations
             int textureNumber = Game.map[mapX][mapY] - 1; // Subtract 1 from map value to get texture index
-            Texture wallTexture = textures.getTexture(String.valueOf(textureNumber));
+            Texture wallTexture = textures.getTexture(textureNumber);
 
             // Calculate value of wallX
             double wallX;
-            if (side == 0) wallX = camera.pos.y + perpWallDistance * raycastDirectionY;
-            else wallX = camera.pos.x + perpWallDistance * raycastDirectionX;
+            if (side == 0) wallX = camera.position.y + perpWallDistance * raycastDirectionY;
+            else wallX = camera.position.x + perpWallDistance * raycastDirectionX;
 
             wallX -= Math.floor(wallX);
 
             // X coordinate on the texture
-            int texX = (int) (wallX * wallTexture.getWidth());
-            if (side == 0 && raycastDirectionX > 0) texX = wallTexture.getWidth() - texX - 1;
-            if (side == 1 && raycastDirectionY < 0) texX = wallTexture.getWidth() - texX - 1;
+            int textureX = (int) (wallX * wallTexture.getWidth());
+            if (side == 0 && raycastDirectionX > 0) textureX = wallTexture.getWidth() - textureX - 1;
+            if (side == 1 && raycastDirectionY < 0) textureX = wallTexture.getWidth() - textureX - 1;
 
             // Draw the vertical stripe
             for (int y = drawStart; y < drawEnd; y++) {
-                int texY = (int) (((y - drawStart) * wallTexture.getHeight()) / lineHeight);
-                Color color = new Color(wallTexture.getTextureData().consumePixmap().getPixel(texX, texY));
+                int textureY = (int) (((y - drawStart) * wallTexture.getHeight()) / lineHeight);
+
+                wallTexture.getTextureData().prepare();
+                Color color = new Color(wallTexture.getTextureData().consumePixmap().getPixel(textureX, textureY));
                 if (side == 1) color.mul(0.7f); // Make y-sides darker
                 pixmap.setColor(color);
                 pixmap.drawPixel(x, y);

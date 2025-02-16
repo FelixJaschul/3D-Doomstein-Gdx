@@ -9,8 +9,9 @@ buildscript {
     maven { url 'https://s01.oss.sonatype.org/content/repositories/snapshots/' }
   }
   dependencies {
-
-
+    // Add buildscript dependencies here (e.g., Gradle plugins)
+    // Example:
+    // classpath 'com.android.tools.build:gradle:7.0.0'
   }
 }
 
@@ -67,6 +68,11 @@ subprojects {
     maven { url 'https://oss.sonatype.org/content/repositories/snapshots/' }
     maven { url 'https://s01.oss.sonatype.org/content/repositories/snapshots/' }
     maven { url 'https://jitpack.io' }
+  }
+
+  dependencies {
+    // Add project dependencies here
+    implementation "com.kotcrab.vis:vis-ui:1.5.5"
   }
 }
 
